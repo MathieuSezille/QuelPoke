@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mathieus
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quelpoke
+  namespace: mathieus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quelpoke
+  template:
+    metadata:
+      labels:
+        app: quelpoke
+    spec:
+      containers:
+      - name: quelpoke
+        image: europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-mathieus/quelpoke@sha256:54cdbd3f6048fa9557dc959ca1728e71658e2ee798b9e3d77b971ab6af8ab77a
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quelpoke
+  namespace: mathieus
+spec:
+  selector:
+    app: quelpoke
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: quelpoke-route
+  namespace: mathieus
+spec:
+  parentRefs:
+  - kind: Gateway
+    name: external-http-gateway     # ✅ TA PAS BESOIN DE LE CRÉER
+    namespace: infra                # ✅ DOIT EXISTER DEJA
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /mathieus             # ✅ URL finale = http(s)://IP_GATEWAY/mathieus
+    backendRefs:
+    - name: quelpoke
+      port: 8080
