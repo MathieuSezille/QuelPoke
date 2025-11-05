@@ -1,0 +1,4 @@
+Langages de l'application : L'application est codée en GO
+Protocole/port : protocole HTTP port 8080
+Services proposé : fonctionnalité : générer une page HTML affichant un Pokémon en fonction d’un nom donné.
+De quels services dépend-elle ? : PokeAPI
