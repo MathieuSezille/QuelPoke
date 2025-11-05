@@ -1,6 +1,6 @@
 # Dockerfile simple pour le projet QuelPoke
 # Utilise une image golang officielle, copie les fichiers, compile et lance le binaire
-FROM golang:1.21
+FROM golang:1.23
 
 WORKDIR /app
 
