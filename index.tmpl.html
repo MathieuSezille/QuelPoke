@@ -1,29 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Quel POKéMON es-tu ? ({{ .Version }})</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg1: #f8fafc;
+            --card: #ffffff;
+            --accent: #ffcb6b;
+            --text: #0f172a;
+        }
+        html,body{height:100%;}
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            background: linear-gradient(180deg, #eef2f7 0%, #ffffff 60%);
+            color: var(--text);
+            -webkit-font-smoothing:antialiased;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding: 2rem;
+        }
+        .container{
+            width:100%;
+            max-width: 720px;
+        }
+        .card{
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 6px 24px rgba(12, 29, 50, 0.08);
+            padding: 1.5rem;
+            display:flex;
+            gap:1.25rem;
+            align-items: center;
+            flex-direction: column;
+        }
+        .title{
+            text-align:center;
+            margin:0;
+            font-weight:700;
+            font-size:1.25rem;
+            color: #0b1220;
+        }
+        .subtitle{color:#374151;margin:0.25rem 0 1rem 0;font-weight:500}
+        .artwork{
+            width:320px;
+            max-width:90%;
+            height:auto;
+            border-radius:12px;
+            background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));
+            padding:0.5rem;
+        }
+        .stats{margin-top:0.75rem; text-align:left}
+        .stat-item{display:flex; align-items:center; gap:0.5rem; margin:0.35rem 0}
+        .stat-name{width:110px; text-transform:capitalize; font-size:0.95rem; color:#374151}
+        .stat-bar{flex:1; height:10px; background:#eef2f7; border-radius:999px; overflow:hidden}
+        .stat-bar > i{display:block; height:100%; background:linear-gradient(90deg,#ffcb6b,#ff9f6b)}
+        form{width:100%; display:flex; gap:0.75rem; align-items:center; justify-content:center; flex-wrap:wrap}
+        label{width:100%; font-size:0.95rem; color:#374151}
+        input[type="text"]{flex:1; min-width:180px; padding:0.75rem 1rem; border-radius:10px; border:1px solid #e6e9ef; font-size:1rem}
+        button[type="submit"]{background:var(--accent); border:none; padding:0.75rem 1.25rem; border-radius:10px; cursor:pointer; font-weight:600}
+        .pokemon-name{font-size:1.125rem; font-weight:600; color:#0b1220; margin:0.5rem 0}
+        footer{font-size:0.85rem; color:#6b7280; text-align:center; margin-top:0.75rem}
+        @media (min-width:900px){ .card{flex-direction:row; padding:2rem} .artwork{width:280px} }
+    </style>
 </head>
 
 <body>
-    <div style="margin-left: auto; margin-right: auto; width: 30%;">
-        <h1 style="display: block; margin-left: auto; margin-right: auto; width: fit-content; color: darkslategrey;">
-            Quel Pokémon es-tu ? ({{ .Version }})</h1>
-        <img width="100%"
-            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{{.PokemonID}}.png">
-        <h2 style="display: block; margin-left: auto; margin-right: auto; width: fit-content; color: rgb(30, 64, 64);">
-            {{ .PokemonName }}</h1>
-            <div>
-                <form action="" method="GET">
-                    <label style="margin-bottom: 2em;" for="name">Votre prénom</label>
-                    <input style="margin-bottom: 2em; width: 100%;" type="text" name="name" id="name" value="{{.Name}}">
-                    <button type="submit"
-                        style="display: block; margin-left: auto; margin-right: auto; width: 33%; padding: 1em; color: rgb(30, 37, 37); background-color: bisque;">
-                        Découvrez votre pokémon</button>
+    <div class="container">
+        <div class="card" role="main" aria-labelledby="page-title">
+            <div style="flex:1; text-align:center">
+                <h1 id="page-title" class="title">Quel Pokémon es-tu ?</h1>
+                <p class="subtitle">Version {{ .Version }}</p>
+                <img class="artwork" alt="Pokémon artwork" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{{.PokemonID}}.png">
+                <p class="pokemon-name">{{ .PokemonName }}</p>
+                {{ if .Stats }}
+                <div class="stats" aria-label="Statistiques du pokémon">
+                    {{ range .Stats }}
+                    <div class="stat-item">
+                        <div class="stat-name">{{ .Name }}</div>
+                        <div class="stat-bar" role="progressbar" aria-valuemin="0" aria-valuemax="255" aria-valuenow="{{ .Base }}">
+                            <i style="width:{{ .Percent }}%;"></i>
+                        </div>
+                        <div style="width:36px; text-align:right; font-weight:600; color:#0b1220">{{ .Base }}</div>
+                    </div>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+
+            <div style="width:320px; max-width:45%;">
+                <form action="" method="GET" novalidate>
+                    <label for="name">Votre prénom</label>
+                    <input type="text" name="name" id="name" value="{{.Name}}" placeholder="Ex: Mathieu" autocomplete="name">
+                    <div style="display:flex; justify-content:center;">
+                        <button type="submit" aria-label="Découvrir votre pokémon">Découvrez votre pokémon</button>
+                    </div>
                 </form>
             </div>
+        </div>
+        <footer>
+            Images tirées de PokeAPI · Petite app Go
+        </footer>
     </div>
 </body>
 

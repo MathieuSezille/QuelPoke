@@ -19,8 +19,16 @@ var indexTemplateFS embed.FS
 type indexTemplateParams struct {
 	PokemonID   uint64
 	PokemonName string
+	Stats       []Stat
 	Name        string
 	Version     string
+}
+
+// Stat represents a single base stat from the PokeAPI
+type Stat struct {
+	Name string
+	Base int
+	Percent int
 }
 
 // env return environment value or default if not exists
@@ -68,6 +76,14 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// fetch pokemon stats (non-fatal)
+	if stats, err := pokemonStats(params.PokemonID); err != nil {
+		log.Println("[WARN] failed to fetch pokemon stats:", err)
+		params.Stats = nil
+	} else {
+		params.Stats = stats
+	}
+
 	if err := tmpl.ExecuteTemplate(w, "index.tmpl.html", params); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("[ERR] failed to execute index template:", err)
@@ -95,6 +111,7 @@ func pokemonName(id uint64) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	type pokemon struct {
 		Name string `json:"name"`
@@ -107,4 +124,41 @@ func pokemonName(id uint64) (string, error) {
 	}
 
 	return poke.Name, nil
+}
+
+// pokemonStats fetches base stats for the given pokemon id from pokeapi
+func pokemonStats(id uint64) ([]Stat, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%d", id), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var data struct {
+		Stats []struct {
+			Base int `json:"base_stat"`
+			Stat struct {
+				Name string `json:"name"`
+			} `json:"stat"`
+		} `json:"stats"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+
+	out := make([]Stat, 0, len(data.Stats))
+	for _, s := range data.Stats {
+		percent := 0
+		if s.Base > 0 {
+			percent = s.Base * 100 / 255
+		}
+		out = append(out, Stat{Name: s.Stat.Name, Base: s.Base, Percent: percent})
+	}
+	return out, nil
 }
