@@ -10,16 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root{
-            --bg1: #f8fafc;
+            --bg: #000000;
             --card: #ffffff;
             --accent: #ffcb6b;
+            --muted: #6b7280;
             --text: #0f172a;
         }
         html,body{height:100%;}
         body {
             margin: 0;
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-            background: linear-gradient(180deg, #eef2f7 0%, #ffffff 60%);
+            background: radial-gradient(circle at center, #1a1a1a 0%, #333333 70%, #4a4a4a 100%);
             color: var(--text);
             -webkit-font-smoothing:antialiased;
             display:flex;
@@ -33,6 +34,7 @@
         }
         .card{
             background: var(--card);
+            color: var(--text);
             border-radius: 14px;
             box-shadow: 0 6px 24px rgba(12, 29, 50, 0.08);
             padding: 1.5rem;
@@ -48,26 +50,31 @@
             font-size:1.25rem;
             color: #0b1220;
         }
-        .subtitle{color:#374151;margin:0.25rem 0 1rem 0;font-weight:500}
+    .subtitle{color:var(--muted);margin:0.25rem 0 1rem 0;font-weight:500}
         .artwork{
-            width:320px;
+            width:280px;
             max-width:90%;
             height:auto;
             border-radius:12px;
-            background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));
+            background:transparent;
             padding:0.5rem;
         }
         .stats{margin-top:0.75rem; text-align:left}
-        .stat-item{display:flex; align-items:center; gap:0.5rem; margin:0.35rem 0}
-        .stat-name{width:110px; text-transform:capitalize; font-size:0.95rem; color:#374151}
-        .stat-bar{flex:1; height:10px; background:#eef2f7; border-radius:999px; overflow:hidden}
-        .stat-bar > i{display:block; height:100%; background:linear-gradient(90deg,#ffcb6b,#ff9f6b)}
+        .radar-wrap{display:flex; gap:1rem; align-items:center; justify-content:center}
+        .radar-box{width:140px; height:140px; background:transparent}
+        .evolutions{display:flex; gap:0.5rem; align-items:center; justify-content:center; margin-top:0.75rem}
+        .evo-item{display:flex; flex-direction:column; align-items:center; gap:0.25rem; color:var(--text); font-weight:600}
+        .evo-item img{width:64px; height:64px; object-fit:contain}
+    .stat-item{display:flex; align-items:center; gap:0.5rem; margin:0.35rem 0}
+    .stat-name{width:110px; text-transform:capitalize; font-size:0.95rem; color:var(--muted)}
+    .stat-bar{flex:1; height:8px; background:rgba(255,255,255,0.03); border-radius:999px; overflow:hidden}
+    .stat-bar > i{display:block; height:100%; background:linear-gradient(90deg,#ffcb6b,#ff9f6b)}
         form{width:100%; display:flex; gap:0.75rem; align-items:center; justify-content:center; flex-wrap:wrap}
         label{width:100%; font-size:0.95rem; color:#374151}
         input[type="text"]{flex:1; min-width:180px; padding:0.75rem 1rem; border-radius:10px; border:1px solid #e6e9ef; font-size:1rem}
         button[type="submit"]{background:var(--accent); border:none; padding:0.75rem 1.25rem; border-radius:10px; cursor:pointer; font-weight:600}
         .pokemon-name{font-size:1.125rem; font-weight:600; color:#0b1220; margin:0.5rem 0}
-        footer{font-size:0.85rem; color:#6b7280; text-align:center; margin-top:0.75rem}
+    footer{font-size:0.85rem; color:var(--muted); text-align:center; margin-top:0.75rem}
         @media (min-width:900px){ .card{flex-direction:row; padding:2rem} .artwork{width:280px} }
     </style>
 </head>
@@ -86,9 +93,21 @@
                     <div class="stat-item">
                         <div class="stat-name">{{ .Name }}</div>
                         <div class="stat-bar" role="progressbar" aria-valuemin="0" aria-valuemax="255" aria-valuenow="{{ .Base }}">
-                            <i style="width:{{ .Percent }}%;"></i>
+                            <i style="display:block; height:100%; background:linear-gradient(90deg,#ffcb6b,#ff9f6b); width: {{ .Percent }}%;"></i>
                         </div>
-                        <div style="width:36px; text-align:right; font-weight:600; color:#0b1220">{{ .Base }}</div>
+                        <div style="width:36px; text-align:right; font-weight:600; color:var(--text)">{{ .Base }}</div>
+                    </div>
+                    {{ end }}
+
+                    {{ if .Evolutions }}
+                    <div style="margin-top:0.75rem; color:var(--muted); font-weight:600;">Chaîne d'évolution</div>
+                    <div class="evolutions" aria-label="Chaîne d'évolution">
+                        {{ range .Evolutions }}
+                        <div class="evo-item">
+                            {{ if .Image }}<img alt="{{ .Name }}" src="{{ .Image }}">{{ end }}
+                            <div style="text-transform:capitalize; color:var(--text); font-weight:600">{{ .Name }}</div>
+                        </div>
+                        {{ end }}
                     </div>
                     {{ end }}
                 </div>
