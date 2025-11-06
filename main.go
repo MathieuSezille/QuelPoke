@@ -124,7 +124,8 @@ func pokemonID(name string, m uint64) uint64 {
 }
 
 func pokemonName(id uint64) (string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%d", id), nil)
+	// Get French name from species endpoint
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://pokeapi.co/api/v2/pokemon-species/%d", id), nil)
 	if err != nil {
 		return "", err
 	}
@@ -135,17 +136,47 @@ func pokemonName(id uint64) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	type pokemon struct {
-		Name string `json:"name"`
+	var speciesData struct {
+		Names []struct {
+			Name     string `json:"name"`
+			Language struct {
+				Name string `json:"name"`
+			} `json:"language"`
+		} `json:"names"`
 	}
 
-	poke := new(pokemon)
-	err = json.NewDecoder(resp.Body).Decode(poke)
+	if err := json.NewDecoder(resp.Body).Decode(&speciesData); err != nil {
+		return "", err
+	}
+
+	// Find French name
+	for _, n := range speciesData.Names {
+		if n.Language.Name == "fr" {
+			return n.Name, nil
+		}
+	}
+
+	// Fallback to default name from pokemon endpoint if French not found
+	req2, err := http.NewRequest("GET", fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%d", id), nil)
 	if err != nil {
 		return "", err
 	}
 
-	return poke.Name, nil
+	resp2, err := http.DefaultClient.Do(req2)
+	if err != nil {
+		return "", err
+	}
+	defer resp2.Body.Close()
+
+	var pokemon struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(resp2.Body).Decode(&pokemon); err != nil {
+		return "", err
+	}
+
+	return pokemon.Name, nil
 }
 
 // pokemonStats fetches base stats for the given pokemon id from pokeapi
